@@ -30,7 +30,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(cors({ origin: 'https://domainname.students.nomoredomains.work', credentials: true }));
+app.use(cors({ origin: 'https://movie.search.fr.nomoredomains.xyz', credentials: true }));
 app.use(helmet());
 app.use(requestLogger);
 

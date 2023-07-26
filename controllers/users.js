@@ -7,6 +7,10 @@ const { ConflictError } = require('../error/ConflictError');
 const { ValidationError } = require('../error/ValidationError');
 const { NotFoundError } = require('../error/NotFoundError');
 const { UnauthorizedError } = require('../error/UnauthorizedError');
+const { ForbiddenError } = require('../error/ForbiddenError');
+
+const configDefault = require('../utils/constants');
+const { errorMessage } = require('../utils/error');
 
 const createUser = (req, res, next) => {
   const {
@@ -14,7 +18,7 @@ const createUser = (req, res, next) => {
     password,
     name,
   } = req.body;
-  bcrypt.hash(req.body.password, 10)
+  bcrypt.hash(req.body.password, configDefault.salt)
     .then((hash) => {
       User.create({
         email,
@@ -29,10 +33,10 @@ const createUser = (req, res, next) => {
         })
         .catch((err) => {
           if (err.name === 'CastError' || err.name === 'Validation failed') {
-            next(new ValidationError('Incorrect data'));
+            next(new ValidationError(errorMessage.wrongDataField));
             return;
           } if (err.code === 11000) {
-            next(new ConflictError('Пользователь с таким email уже существует'));
+            next(new ConflictError(errorMessage.userCreated));
             return;
           }
           next(err);
@@ -52,12 +56,15 @@ const resumeProfile = (req, res, next) => {
     { new: true, runValidators: true },
   )
     .then((user) => {
-      if (user) return res.send({ user });
-      throw new NotFoundError('Incorrect data');
+      if (user) {
+        res.send({ user });
+      } else {
+        throw new ForbiddenError(errorMessage.notFoundUserMessage);
+      }
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new NotFoundError('Incorrect data'));
+        next(new NotFoundError(errorMessage.errorNotFound));
       } else {
         next(err);
       }
@@ -70,11 +77,11 @@ const login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (user === null) {
-        throw new UnauthorizedError('Incorrect data');
+        throw new UnauthorizedError(errorMessage.authorizationMessage);
       } return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new UnauthorizedError('Неправильная почта или пароль');
+            throw new UnauthorizedError(errorMessage.errorLoginMessage);
           }
           const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
           res.cookie('jwt', token, {
@@ -96,7 +103,7 @@ const resumeNowProfile = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError(errorMessage.notFoundUserMessage);
       }
       return res.send({
         name: user.name,
@@ -105,11 +112,18 @@ const resumeNowProfile = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Invalid id'));
+        next(new ValidationError(errorMessage.wrongDataField));
       } else {
         next(err);
       }
     });
+};
+const out = (req, res, next) => {
+  try {
+    res.clearCookie('jwt').send({ message: 'Вы успешно вышли из аккаунта' });
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports = {
@@ -117,4 +131,5 @@ module.exports = {
   resumeProfile,
   login,
   resumeNowProfile,
+  out,
 };

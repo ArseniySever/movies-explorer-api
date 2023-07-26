@@ -17,7 +17,7 @@ router.all(auth);
 router.use('/users', routerUser);
 router.use('/movies', routerMovie);
 
-router.all('*', () => {
+router.all('/*', () => {
   throw new NotFoundError(errorMessage.notPageFoundMessage);
 });
 

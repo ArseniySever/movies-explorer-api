@@ -8,6 +8,6 @@
 
 ## Ссылки на проект
 
-IP-адрес 158.160.44.202
+IP-адрес 158.160.61.86
 
 Backend movie.search.nomoredomains.xyz

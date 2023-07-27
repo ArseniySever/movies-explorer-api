@@ -59,7 +59,7 @@ const resumeProfile = (req, res, next) => {
       if (user) {
         res.send({ user });
       } else {
-        throw new ForbiddenError(errorMessage.notFoundUserMessage);
+        next(new ForbiddenError(errorMessage.notFoundUserMessage));
       }
     })
     .catch((err) => {

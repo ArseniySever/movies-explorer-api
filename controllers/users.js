@@ -29,6 +29,8 @@ const createUser = (req, res, next) => {
           res.status(201).send({
             email: user.email,
             name: user.name,
+            _id: user._id,
+
           });
         })
         .catch((err) => {
@@ -77,19 +79,19 @@ const login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (user === null) {
-        throw new UnauthorizedError(errorMessage.authorizationMessage);
+        throw new UnauthorizedError('Incorrect data');
       } return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new UnauthorizedError(errorMessage.errorLoginMessage);
+            throw new UnauthorizedError('Неправильная почта или пароль');
           }
           const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
-          res.cookie('jwt', token, {
+          return res.cookie('jwt', token, {
             maxAge: 604800000,
             httpOnly: true,
-            sameSite: true,
-          });
-          return res.send({ token });
+            sameSite: 'None',
+            secure: true,
+          }).send({ token });
         })
         .catch((err) => {
           next(err);
@@ -103,21 +105,23 @@ const resumeNowProfile = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError(errorMessage.notFoundUserMessage);
+        throw new NotFoundError('User not found');
       }
       return res.send({
-        name: user.name,
         email: user.email,
+        name: user.name,
+        _id: user._id,
       });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError(errorMessage.wrongDataField));
+        next(new ValidationError('Invalid id'));
       } else {
         next(err);
       }
     });
 };
+
 const out = (req, res, next) => {
   try {
     res.clearCookie('jwt').send({ message: 'Вы успешно вышли из аккаунта' });

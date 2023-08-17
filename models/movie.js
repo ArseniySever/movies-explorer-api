@@ -43,15 +43,17 @@ const movieSchema = new mongoose.Schema({
       validator: validator.isURL,
     },
   },
+  movieId: {
+    type: Number,
+    required: true,
+
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
     required: true,
   },
-  movieId: {
-    type: Number,
-    required: true,
-  },
+
   nameRU: {
     type: String,
     required: true,

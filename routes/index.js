@@ -12,7 +12,7 @@ router.post('/signup', createUserValidation, createUser);
 router.post('/signin', loginValidation, login);
 router.post('/signout', out);
 
-router.all(auth);
+router.use(auth);
 
 router.use('/users', routerUser);
 router.use('/movies', routerMovie);

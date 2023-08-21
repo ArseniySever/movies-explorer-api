@@ -2,13 +2,13 @@ const { celebrate, Joi } = require('celebrate');
 
 const loginValidation = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().email().required(),
+    email: Joi.string().email().required().regex(/[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+/),
     password: Joi.string().required(),
   }),
 });
 const createUserValidation = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().email().required(),
+    email: Joi.string().email().required().regex(/[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+/),
     password: Joi.string().required(),
     name: Joi.string().required().min(2).max(30),
   }),
@@ -37,7 +37,7 @@ const deleteMovieValidation = celebrate({
 
 const resumeUserInfoValidation = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
+    email: Joi.string().required().email().regex(/[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+/),
     name: Joi.string().required().min(2).max(30),
   }),
 });
